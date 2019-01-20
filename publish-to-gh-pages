@@ -38,10 +38,11 @@ main(){
     git fetch origin gh-pages
     git checkout gh-pages
     git rm --ignore-unmatch -rf .
-    cp $build_files .
+    echo "Copy over files from $build_files"
+    cp -r $build_files .
     git add .
     git commit -m "Published via Github Action."
-    git push -u --dry-run origin gh-pages 
+    git push -u origin gh-pages 
     # Clean up
     cd ..
     rm -rf $repo
