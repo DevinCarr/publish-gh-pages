@@ -1,0 +1,50 @@
+#!/bin/bash
+set -e
+set -o pipefail
+
+# Some of the code here was borrowed from Jess's example action: 
+# https://github.com/jessfraz/branch-cleanup-action
+
+# This is populated by our secret from the Workflow file.
+if [[ -z "$GITHUB_TOKEN" ]]; then
+	echo "Set the GITHUB_TOKEN env variable."
+	exit 1
+fi
+
+# This one is populated by GitHub for free :)
+if [[ -z "$GITHUB_REPOSITORY" ]]; then
+	echo "Set the GITHUB_REPOSITORY env variable."
+	exit 1
+fi
+
+# This one too!
+if [[ -z "$GITHUB_ACTOR" ]]; then
+	echo "Set the GITHUB_ACTOR env variable."
+	exit 1
+fi
+
+if [[ -z "$PUBLISH_DIRECTORY" ]]; then
+	echo "Set the GITHUB_ACTOR env variable."
+	exit 1
+fi
+
+main(){
+    repo="repo/"
+    repo_url="https://$GITHUB_ACTOR:$GITHUB_TOKEN@github.com/$GITHUB_REPOSITORY.git"
+    build_files="../$PUBLISH_DIRECTORY/*"
+
+    git clone $repo_url $repo
+    cd $repo
+    git fetch origin gh-pages
+    git checkout gh-pages
+    git rm --ignore-unmatch -rf .
+    cp $build_files .
+    git add .
+    git commit -m "Published via Github Action."
+    git push -u --dry-run origin gh-pages 
+    # Clean up
+    cd ..
+    rm -rf $repo
+}
+
+main "$@"
