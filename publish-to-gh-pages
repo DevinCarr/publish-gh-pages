@@ -5,44 +5,54 @@ set -o pipefail
 # Some of the code here was borrowed from Jess's example action: 
 # https://github.com/jessfraz/branch-cleanup-action
 
-# This is populated by our secret from the Workflow file.
-if [[ -z "$GITHUB_TOKEN" ]]; then
-	echo "Set the GITHUB_TOKEN env variable."
-	exit 1
-fi
-
 # This one is populated by GitHub for free :)
 if [[ -z "$GITHUB_REPOSITORY" ]]; then
 	echo "Set the GITHUB_REPOSITORY env variable."
 	exit 1
 fi
 
-# This one too!
-if [[ -z "$GITHUB_ACTOR" ]]; then
-	echo "Set the GITHUB_ACTOR env variable."
-	exit 1
-fi
-
+# Custom Required Environment Variables
 if [[ -z "$PUBLISH_DIRECTORY" ]]; then
 	echo "Set the GITHUB_ACTOR env variable."
 	exit 1
 fi
 
+if [[ -z "$GIT_PERSONAL_ACCESS_TOKEN" ]]; then
+	echo "Set the GIT_PERSONAL_ACCESS_TOKEN env variable."
+	exit 1
+fi
+
+if [[ -z "$GIT_USER" ]]; then
+	echo "Set the GIT_USER env variable."
+	exit 1
+fi
+
+if [[ -z "$GIT_EMAIL" ]]; then
+	echo "Set the GIT_EMAIL env variable."
+	exit 1
+fi
+
 main(){
     repo="repo/"
-    repo_url="https://$GITHUB_ACTOR:$GITHUB_TOKEN@github.com/$GITHUB_REPOSITORY.git"
+    repo_url="https://$GIT_USER:$GIT_PERSONAL_ACCESS_TOKEN@github.com/$GITHUB_REPOSITORY.git"
     build_files="../$PUBLISH_DIRECTORY/*"
 
     git clone $repo_url $repo
     cd $repo
+    git config user.name "$GIT_USER"
+    git config user.email "$GIT_EMAIL"
+    git config remote.origin.url $repo_url
     git fetch origin gh-pages
     git checkout gh-pages
     git rm --ignore-unmatch -rf .
     echo "Copy over files from $build_files"
     cp -r $build_files .
+    ls -al
     git add .
+    git status
     git commit -m "Published via Github Action."
-    git push -u origin gh-pages 
+    git status
+    git push -u origin gh-pages
     # Clean up
     cd ..
     rm -rf $repo
