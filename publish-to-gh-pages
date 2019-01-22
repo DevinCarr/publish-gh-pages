@@ -39,20 +39,34 @@ main(){
 
     git clone $repo_url $repo
     cd $repo
+    # Set the commit user details
     git config user.name "$GIT_USER"
     git config user.email "$GIT_EMAIL"
     git config remote.origin.url $repo_url
+
+    # Get the repository's gh-pages branch
     git fetch origin gh-pages
     git checkout gh-pages
+    # Remove the current files
     git rm --ignore-unmatch -rf .
     echo "Copy over files from $build_files"
     cp -r $build_files .
     ls -al
-    git add .
     git status
-    git commit -m "Published via Github Action."
-    git status
-    git push -u origin gh-pages
+
+    # Check to see if the number of changes is 0
+    changes=$(git status --short | wc -l)
+    if [[ "$changes" -eq "0" ]]; then
+        # Don't commit a change if no changes to be made
+        echo "No changes from current published build, exiting."
+    else
+        # Commit the current changes and push
+        git add .
+        git commit -m "Published via Github Action."
+        git status
+        git push -u origin gh-pages
+    fi
+    
     # Clean up
     cd ..
     rm -rf $repo

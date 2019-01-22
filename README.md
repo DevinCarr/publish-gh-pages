@@ -26,6 +26,7 @@ action "Publish" {
 - `GIT_EMAIL`: Github email of the commiter.
 
 ### Environment Variables
+
 - `PUBLISH_DIRECTORY`: The action will copy all of the files from this directory into the root of the `gh-pages` branch.
 
 
